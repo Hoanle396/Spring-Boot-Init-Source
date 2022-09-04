@@ -1,10 +1,20 @@
 package com.courses.edu.configuration;
 
+import java.lang.reflect.Method;
+import java.security.Permissions;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.access.AccessDecisionVoter;
+import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.access.method.AbstractMethodSecurityMetadataSource;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -12,7 +22,11 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.courses.edu.enums.Role;
 import com.courses.edu.helper.JWTTokenFilter;
+
+import io.jsonwebtoken.lang.Collections;
+import net.bytebuddy.implementation.bytecode.member.MethodInvocation;
 
 @Configuration
 @EnableWebSecurity
@@ -39,9 +53,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 		http.authorizeRequests()
 				// public endpoints
 				.antMatchers(HttpMethod.GET, "/api/v1/category/**").permitAll()
-				.antMatchers(HttpMethod.GET, "/api/v1/user/**").permitAll()
-				.antMatchers(HttpMethod.GET, "/api/v1/course/**").permitAll()
-				.antMatchers(HttpMethod.POST, "/api/v1/course/search").permitAll().antMatchers("/api/auth/**", "/")
+				.antMatchers("/api/auth/**", "/")
 				.permitAll().anyRequest().authenticated();
 
 		http.addFilterBefore(JWTTokenFilter(), UsernamePasswordAuthenticationFilter.class);
@@ -49,3 +61,4 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	}
 
 }
+

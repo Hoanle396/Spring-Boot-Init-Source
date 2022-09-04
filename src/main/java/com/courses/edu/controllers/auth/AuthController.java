@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.courses.edu.controllers.auth.dto.LoginDto;
 import com.courses.edu.entities.Users;
+import com.courses.edu.enums.Role;
+import com.courses.edu.enums.Roles;
 import com.courses.edu.helper.EncryptionDecryption;
 import com.courses.edu.models.ResponseObject;
 import com.courses.edu.providers.JWTProvider;
@@ -48,7 +50,7 @@ public class AuthController {
 			}
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseObject("401", "UnAuthorized!", ""));
 		} catch (UsernameNotFoundException e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseObject("401", "UnAuthorized!", ""));
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseObject("401", "UnAuthorized!", "username not found"));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body(new ResponseObject("500", "Internal server error!", ""));
@@ -57,6 +59,7 @@ public class AuthController {
 	}
 
 	@GetMapping("/user")
+	@Roles(Role.ADMIN)
 	@CrossOrigin
 	ResponseEntity<ResponseObject> User() {
 		List<Users> user = UserRepo.findAll();

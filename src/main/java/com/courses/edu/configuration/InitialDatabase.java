@@ -21,7 +21,7 @@ public class InitialDatabase {
 				Users user = new Users("hoanle396@gmail.com", "le huu hoan", "123456", Role.USER);
 				Users admin = new Users("lhhoan.20@gmail.com", "le huu hoan", "123456", Role.ADMIN);
 				user.setPassword(EncryptionDecryption.encryptPassword(user.getPassword()));
-				admin.setPassword(EncryptionDecryption.encryptPassword(user.getPassword()));
+				admin.setPassword(EncryptionDecryption.encryptPassword(admin.getPassword()));
 				System.out.println("insert: " + users.save(user));
 				System.out.println("insert: " + users.save(admin));
 			}
