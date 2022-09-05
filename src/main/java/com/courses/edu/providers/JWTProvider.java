@@ -44,7 +44,7 @@ public class JWTProvider implements Serializable {
 		final Claims claims = getAllClaimsFromToken(token);
 		return claimsResolver.apply(claims);
 	}
-	
+
 	public String getRoleFromToken(String token) {
 		return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().get("role").toString();
 	}
@@ -61,7 +61,7 @@ public class JWTProvider implements Serializable {
 	}
 
 	// generate token for user
-	public String generateToken(UserDetails userDetails,Role role) {
+	public String generateToken(UserDetails userDetails, Role role) {
 		Map<String, Object> claims = new HashMap<>();
 		claims.put("role", role.toString());
 		return doGenerateToken(claims, userDetails.getUsername());
@@ -69,8 +69,7 @@ public class JWTProvider implements Serializable {
 
 	private String doGenerateToken(Map<String, Object> claims, String subject) {
 
-		return Jwts.builder().setClaims(claims).setSubject(subject)
-				.setIssuedAt(new Date(System.currentTimeMillis()))
+		return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
 				.setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
 				.signWith(SignatureAlgorithm.HS512, secret).compact();
 	}

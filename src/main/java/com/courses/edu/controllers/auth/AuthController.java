@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -44,14 +43,15 @@ public class AuthController {
 		try {
 			final UserDetails user = userService.loadUserByUsername(loginbody.getEmail());
 			if (EncryptionDecryption.checkPassword(loginbody.getPassword(), user.getPassword())) {
-				Users u=UserRepo.findByUsername(user.getUsername());
-				final String token = jwtTokenUtil.generateToken(user,u.getRole());
+				Users u = UserRepo.findByUsername(user.getUsername());
+				final String token = jwtTokenUtil.generateToken(user, u.getRole());
 				return ResponseEntity.status(HttpStatus.OK)
 						.body(new ResponseObject("200", "Login successfuly!", token));
 			}
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseObject("401", "UnAuthorized!", ""));
 		} catch (UsernameNotFoundException e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseObject("401", "UnAuthorized!", "username not found"));
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new ResponseObject("401", "UnAuthorized!", "username not found"));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body(new ResponseObject("500", "Internal server error!", ""));
@@ -60,7 +60,7 @@ public class AuthController {
 	}
 
 	@GetMapping("/user")
-	@Roles({Role.ADMIN})
+	@Roles({ Role.ADMIN })
 	@CrossOrigin
 	ResponseEntity<ResponseObject> User() {
 		List<Users> user = UserRepo.findAll();
