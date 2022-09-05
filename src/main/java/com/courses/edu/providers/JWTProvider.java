@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import com.courses.edu.enums.Role;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -42,6 +44,10 @@ public class JWTProvider implements Serializable {
 		final Claims claims = getAllClaimsFromToken(token);
 		return claimsResolver.apply(claims);
 	}
+	
+	public String getRoleFromToken(String token) {
+		return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().get("role").toString();
+	}
 
 	// for retrieveing any information from token we will need the secret key
 	public Claims getAllClaimsFromToken(String token) {
@@ -55,14 +61,16 @@ public class JWTProvider implements Serializable {
 	}
 
 	// generate token for user
-	public String generateToken(UserDetails userDetails) {
+	public String generateToken(UserDetails userDetails,Role role) {
 		Map<String, Object> claims = new HashMap<>();
+		claims.put("role", role.toString());
 		return doGenerateToken(claims, userDetails.getUsername());
 	}
 
 	private String doGenerateToken(Map<String, Object> claims, String subject) {
 
-		return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
+		return Jwts.builder().setClaims(claims).setSubject(subject)
+				.setIssuedAt(new Date(System.currentTimeMillis()))
 				.setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
 				.signWith(SignatureAlgorithm.HS512, secret).compact();
 	}

@@ -44,7 +44,8 @@ public class AuthController {
 		try {
 			final UserDetails user = userService.loadUserByUsername(loginbody.getEmail());
 			if (EncryptionDecryption.checkPassword(loginbody.getPassword(), user.getPassword())) {
-				final String token = jwtTokenUtil.generateToken(user);
+				Users u=UserRepo.findByUsername(user.getUsername());
+				final String token = jwtTokenUtil.generateToken(user,u.getRole());
 				return ResponseEntity.status(HttpStatus.OK)
 						.body(new ResponseObject("200", "Login successfuly!", token));
 			}
@@ -59,7 +60,7 @@ public class AuthController {
 	}
 
 	@GetMapping("/user")
-	@Roles(Role.ADMIN)
+	@Roles({Role.ADMIN})
 	@CrossOrigin
 	ResponseEntity<ResponseObject> User() {
 		List<Users> user = UserRepo.findAll();

@@ -11,38 +11,52 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.courses.edu.enums.Role;
 import com.courses.edu.enums.Roles;
+import com.courses.edu.models.ResponseObject;
+import com.courses.edu.providers.JWTProvider;
 
 @Aspect
 @Component
 public class RolesAspect {
-    @Around("@annotation(com.courses.edu.enums.Roles)")
-    public Object doSomething(ProceedingJoinPoint jp) throws Throwable {
+	@Autowired
+	private JWTProvider jwtTokenProvider;
 
-        Set<Role> roles = Arrays.stream(((MethodSignature) jp.getSignature()).getMethod()
-                .getAnnotation(Roles.class).value()).collect(Collectors.toSet());
+	@Around("@annotation(com.courses.edu.enums.Roles)")
+	public Object doSomething(ProceedingJoinPoint jp) throws Throwable {
 
-        HttpServletRequest httpServletRequest = getRequest();
+		Set<Role> roles = Arrays.stream(((MethodSignature) jp.getSignature()).getMethod()
+	                .getAnnotation(Roles.class).value()).collect(Collectors.toSet());
 
-        for(Role role : roles){
-            if(httpServletRequest.isUserInRole(role.toString())){
-                return jp.proceed();
-            }
-        }
+		HttpServletRequest httpServletRequest = getRequest();
 
-        throw new AccessDeniedException("Access Denied");
-    }
+		String token = JWTTokenFilter.getToken(httpServletRequest);
+		String userRole="GUEST";
+		if (StringUtils.hasText(token) && jwtTokenProvider.validateJwtToken(token)) {
+			userRole = jwtTokenProvider.getRoleFromToken(token);
+			
+			for (Role role : roles) {
+				if (userRole.equals(role.toString())) {
+					return jp.proceed();
+				}
+			}
+		}
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ResponseObject("403", "Access Denied", "You do not have permission to access this URL"));
+	}
 
-    private HttpServletRequest getRequest() {
+	private HttpServletRequest getRequest() {
 
-        ServletRequestAttributes servletRequestAttributes =
-                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+		ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder
+				.getRequestAttributes();
 
-        return servletRequestAttributes.getRequest();
-    }
+		return servletRequestAttributes.getRequest();
+	}
 }
