@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.courses.edu.controllers.auth.dto.LoginDto;
+import com.courses.edu.controllers.auth.dto.RegisterDto;
 import com.courses.edu.entities.Users;
 import com.courses.edu.enums.Role;
 import com.courses.edu.enums.Roles;
@@ -57,6 +58,26 @@ public class AuthController {
 					.body(new ResponseObject("500", "Internal server error!", ""));
 		}
 
+	}
+
+	@PostMapping("/register")
+	@CrossOrigin
+	ResponseEntity<ResponseObject> Register(@RequestBody RegisterDto registerdto) {
+		try {
+			Users user = UserRepo.findByUsername(registerdto.getEmail().trim());
+			if (user != null) {
+				return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
+						.body(new ResponseObject("NotImplemented", "Email a readly exits", ""));
+			}
+			Users newuser = new Users(registerdto.getEmail(), registerdto.getFullname(),
+					EncryptionDecryption.encryptPassword(registerdto.getPassword()), Role.USER);
+			return ResponseEntity.status(HttpStatus.OK)
+					.body(new ResponseObject("OK", "Register successfuly!", UserRepo.save(newuser)));
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ResponseObject("500", "Internal server error!", ""));
+		}
 	}
 
 	@GetMapping("/user")
