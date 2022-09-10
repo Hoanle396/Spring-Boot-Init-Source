@@ -25,4 +25,12 @@ public class UserService implements UserDetailsService {
 		return new CustomUserDetails(user);
 	}
 
+	public Users getUserByUsername(String username) {
+		Users user = userRepository.findByUsername(username);
+		if (user == null) {
+			throw new UsernameNotFoundException(username);
+		}
+		return user;
+	}
+
 }

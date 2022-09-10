@@ -1,10 +1,9 @@
 package com.courses.edu.controllers.auth;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -18,7 +17,6 @@ import com.courses.edu.controllers.auth.dto.LoginDto;
 import com.courses.edu.controllers.auth.dto.RegisterDto;
 import com.courses.edu.entities.Users;
 import com.courses.edu.enums.Role;
-import com.courses.edu.enums.Roles;
 import com.courses.edu.helper.EncryptionDecryption;
 import com.courses.edu.models.ResponseObject;
 import com.courses.edu.providers.JWTProvider;
@@ -81,11 +79,21 @@ public class AuthController {
 	}
 
 	@GetMapping("/user")
-	@Roles({ Role.ADMIN })
 	@CrossOrigin
 	ResponseEntity<ResponseObject> User() {
-		List<Users> user = UserRepo.findAll();
-		return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject("OK", "Query Successfuly!", user));
 
+		try {
+			Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+			String username = ((UserDetails) principal).getUsername();
+			Users userInfo = userService.getUserByUsername(username);
+			return ResponseEntity.status(HttpStatus.OK).body(
+					new ResponseObject("ok", "Query successfully", userInfo));
+		} catch (UsernameNotFoundException e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new ResponseObject("401", "UnAuthorized!", "username not found"));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ResponseObject("500", "Internal server error!", ""));
+		}
 	}
 }
